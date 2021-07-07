@@ -3,4 +3,5 @@ dist/
 .idea
 *.apk
 *.pub
-oci8.pc
+oci8.pc.template
+oracledb_exporter

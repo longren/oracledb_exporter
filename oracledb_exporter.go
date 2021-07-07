@@ -31,7 +31,7 @@ import (
 
 var (
 	// Version will be set at build time.
-	Version            = "0.0.0.dev"
+	Version            = "0.3.1.self"
 	listenAddress      = kingpin.Flag("web.listen-address", "Address to listen on for web interface and telemetry. (env: LISTEN_ADDRESS)").Default(getEnv("LISTEN_ADDRESS", ":9161")).String()
 	metricPath         = kingpin.Flag("web.telemetry-path", "Path under which to expose metrics. (env: TELEMETRY_PATH)").Default(getEnv("TELEMETRY_PATH", "/metrics")).String()
 	defaultFileMetrics = kingpin.Flag("default.metrics", "File with default metrics in a TOML file. (env: DEFAULT_METRICS)").Default(getEnv("DEFAULT_METRICS", "default-metrics.toml")).String()
@@ -42,6 +42,7 @@ var (
 	securedMetrics     = kingpin.Flag("web.secured-metrics", "Expose metrics using https.").Default("false").Bool()
 	serverCert         = kingpin.Flag("web.ssl-server-cert", "Path to the PEM encoded certificate").ExistingFile()
 	serverKey          = kingpin.Flag("web.ssl-server-key", "Path to the PEM encoded key").ExistingFile()
+	OracleDataSource   = kingpin.Flag("dsn", "Oracle data source(default: username/password@ip:port/servicename)").String()
 )
 
 // Metric name parts.
@@ -541,7 +542,8 @@ func main() {
 	kingpin.Parse()
 
 	log.Infoln("Starting oracledb_exporter " + Version)
-	dsn := os.Getenv("DATA_SOURCE_NAME")
+	// dsn := os.Getenv("DATA_SOURCE_NAME")
+	dsn := *OracleDataSource
 
 	// Load default and custom metrics
 	hashMap = make(map[int][]byte)
@@ -552,7 +554,7 @@ func main() {
 
 	// See more info on https://github.com/prometheus/client_golang/blob/master/prometheus/promhttp/http.go#L269
 	opts := promhttp.HandlerOpts{
-		ErrorLog: log.NewErrorLogger(),
+		ErrorLog:      log.NewErrorLogger(),
 		ErrorHandling: promhttp.ContinueOnError,
 	}
 	http.Handle(*metricPath, promhttp.HandlerFor(prometheus.DefaultGatherer, opts))
